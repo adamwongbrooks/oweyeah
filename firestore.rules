@@ -12,11 +12,6 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUserIds;
     }
 
-    function isGroupOwner(groupId) {
-      return isAuthenticated() &&
-        get(/databases/$(database)/documents/groups/$(groupId)).data.userId == request.auth.uid;
-    }
-
     // Users can read/write their own user document
     match /users/{userId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
@@ -24,9 +19,9 @@ service cloud.firestore {
 
     // Group members can read groups; only owner can modify
     match /groups/{groupId} {
-      allow read: if isGroupMember(groupId);
+      allow read: if isAuthenticated() && request.auth.uid in resource.data.memberUserIds;
       allow create: if isAuthenticated();
-      allow update, delete: if isGroupOwner(groupId);
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
 
       // Transactions live underneath groups
       match /transactions/{txId} {
