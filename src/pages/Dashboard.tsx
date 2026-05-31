@@ -98,6 +98,7 @@ export default function Dashboard() {
             Your groups will appear here. Create one to get started.
           </Typography>
         ) : (
+          <>
           <List disablePadding>
             {groups.map((g) => (
               <ListItem
@@ -146,6 +147,7 @@ export default function Dashboard() {
               </Button>
             </DialogActions>
           </Dialog>
+          </>
         )}
 
         <Box sx={{ mt: 4 }}>
