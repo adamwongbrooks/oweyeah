@@ -5,7 +5,7 @@ import {
   MenuItem, Radio, RadioGroup, Select, Stack, TextField, Typography,
 } from '@mui/material';
 import {
-  addDoc, collection, doc, serverTimestamp, Timestamp, updateDoc,
+  addDoc, collection, deleteDoc, doc, serverTimestamp, Timestamp, updateDoc,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { ExpenseCategory, Group, Split, SplitType, Transaction, UserDoc } from '../types';
@@ -58,6 +58,7 @@ export default function ExpenseDialog({
   const [percentages, setPercentages] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -89,6 +90,7 @@ export default function ExpenseDialog({
       setPercentages({});
     }
     setError('');
+    setConfirmDelete(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalAmount = parseFloat(amount) || 0;
@@ -316,10 +318,44 @@ export default function ExpenseDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button variant="contained" onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving…' : isEditing ? 'Save' : 'Add'}
-        </Button>
+        {isEditing && !confirmDelete && (
+          <Button color="error" onClick={() => setConfirmDelete(true)} disabled={saving} sx={{ mr: 'auto' }}>
+            Delete
+          </Button>
+        )}
+        {isEditing && confirmDelete && (
+          <>
+            <Typography variant="body2" sx={{ mr: 'auto', alignSelf: 'center' }}>
+              Delete this expense?
+            </Typography>
+            <Button onClick={() => setConfirmDelete(false)} disabled={saving}>Cancel</Button>
+            <Button
+              variant="contained"
+              color="error"
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await deleteDoc(doc(db, 'groups', groupId, 'transactions', transaction!.id));
+                  onClose();
+                } catch {
+                  setError('Failed to delete expense.');
+                  setSaving(false);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </>
+        )}
+        {!confirmDelete && (
+          <>
+            <Button onClick={onClose} disabled={saving}>Cancel</Button>
+            <Button variant="contained" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : isEditing ? 'Save' : 'Add'}
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   );

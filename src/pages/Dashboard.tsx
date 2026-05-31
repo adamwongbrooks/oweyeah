@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
   AppBar, Box, Button, Container, Dialog, DialogActions, DialogContent,
-  DialogTitle, List, ListItem, ListItemButton, ListItemText, TextField, Toolbar, Typography,
+  DialogTitle, IconButton, List, ListItem, ListItemButton, ListItemText,
+  TextField, Toolbar, Typography,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
-  addDoc, collection, onSnapshot, query, serverTimestamp, where,
+  addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, where,
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../lib/firebase';
@@ -20,6 +22,7 @@ export default function Dashboard() {
   const [groupName, setGroupName] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -97,7 +100,20 @@ export default function Dashboard() {
         ) : (
           <List disablePadding>
             {groups.map((g) => (
-              <ListItem key={g.id} divider disablePadding>
+              <ListItem
+                key={g.id}
+                divider
+                disablePadding
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    aria-label="delete group"
+                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(g.id); }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                }
+              >
                 <ListItemButton onClick={() => navigate(`/group/${g.id}`)}>
                   <ListItemText
                     primary={g.name}
@@ -107,6 +123,29 @@ export default function Dashboard() {
               </ListItem>
             ))}
           </List>
+
+          <Dialog open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)} maxWidth="xs">
+            <DialogTitle>Delete group?</DialogTitle>
+            <DialogContent>
+              <Typography>
+                This will permanently delete &ldquo;
+                {groups.find((g) => g.id === confirmDeleteId)?.name}&rdquo; for all members.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+              <Button onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={async () => {
+                  if (confirmDeleteId) await deleteDoc(doc(db, 'groups', confirmDeleteId));
+                  setConfirmDeleteId(null);
+                }}
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
         )}
 
         <Box sx={{ mt: 4 }}>
