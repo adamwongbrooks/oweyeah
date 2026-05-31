@@ -149,7 +149,7 @@ export default function GroupPage() {
 
       <Container maxWidth="md" sx={{ mt: 3, pb: 6 }}>
         {/* Balance summary */}
-        <Card variant="outlined" sx={{ mb: 3 }}>
+        <Card variant="outlined" sx={{ mb: 3, borderRadius: '10px' }}>
           <CardContent>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Balances</Typography>
             {debts.length === 0 ? (

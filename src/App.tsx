@@ -8,7 +8,17 @@ import GroupPage from './pages/GroupPage';
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#2e7d32' },
+    primary: { main: '#6e8f5e' },
+    background: { default: '#fdf8f2', paper: '#ffffff' },
+  },
+  shape: { borderRadius: 16 },
+  components: {
+    MuiButton: {
+      styleOverrides: { root: { borderRadius: '8px' } },
+    },
+    MuiChip: {
+      styleOverrides: { root: { borderRadius: '8px' } },
+    },
   },
 });
 
