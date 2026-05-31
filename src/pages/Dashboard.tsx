@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   AppBar, Box, Button, Container, Dialog, DialogActions, DialogContent,
-  DialogTitle, List, ListItem, ListItemText, TextField, Toolbar, Typography,
+  DialogTitle, List, ListItem, ListItemButton, ListItemText, TextField, Toolbar, Typography,
 } from '@mui/material';
 import {
   addDoc, collection, onSnapshot, query, serverTimestamp, where,
@@ -58,6 +58,7 @@ export default function Dashboard() {
         name,
         userId: user.uid,
         memberUserIds: [user.uid],
+        pendingInvites: [],
         createdAt: serverTimestamp(),
       });
       setDialogOpen(false);
@@ -96,11 +97,13 @@ export default function Dashboard() {
         ) : (
           <List disablePadding>
             {groups.map((g) => (
-              <ListItem key={g.id} divider sx={{ px: 0 }}>
-                <ListItemText
-                  primary={g.name}
-                  secondary={`${g.memberUserIds.length} member${g.memberUserIds.length !== 1 ? 's' : ''}`}
-                />
+              <ListItem key={g.id} divider disablePadding>
+                <ListItemButton onClick={() => navigate(`/group/${g.id}`)}>
+                  <ListItemText
+                    primary={g.name}
+                    secondary={`${g.memberUserIds.length} member${g.memberUserIds.length !== 1 ? 's' : ''}`}
+                  />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>

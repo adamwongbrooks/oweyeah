@@ -12,7 +12,10 @@ import {
   onAuthStateChanged,
   type User,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  arrayRemove, arrayUnion, collection, doc, getDoc, getDocs,
+  query, serverTimestamp, setDoc, updateDoc, where,
+} from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { UserDoc } from '../types';
 
@@ -56,6 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Re-fetch so userDoc is populated before navigation
     const snap = await getDoc(doc(db, 'users', user.uid));
     setUserDoc(snap.data() as UserDoc);
+    // Resolve any pending group invites for this email
+    const pendingGroups = await getDocs(
+      query(collection(db, 'groups'), where('pendingInvites', 'array-contains', email.toLowerCase()))
+    );
+    await Promise.all(
+      pendingGroups.docs.map((g) =>
+        updateDoc(g.ref, {
+          memberUserIds: arrayUnion(user.uid),
+          pendingInvites: arrayRemove(email.toLowerCase()),
+        })
+      )
+    );
   }
 
   async function logIn(email: string, password: string) {

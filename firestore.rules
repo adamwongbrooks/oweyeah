@@ -12,19 +12,32 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUserIds;
     }
 
-    // Users can read/write their own user document
+    // Any authenticated user can read user profiles (needed for member lookup by email/uid)
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Group members can read groups; only owner can modify
     match /groups/{groupId} {
-      allow read: if isAuthenticated() && request.auth.uid in resource.data.memberUserIds;
+      allow read: if isAuthenticated() && (
+        request.auth.uid in resource.data.memberUserIds ||
+        (resource.data.pendingInvites != null &&
+         request.auth.token.email in resource.data.pendingInvites)
+      );
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        request.auth.uid in resource.data.memberUserIds ||
+        (resource.data.pendingInvites != null &&
+         request.auth.token.email in resource.data.pendingInvites)
+      );
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
 
-      // Transactions live underneath groups
       match /transactions/{txId} {
+        allow read, write: if isGroupMember(groupId);
+      }
+
+      match /settlements/{settlementId} {
         allow read, write: if isGroupMember(groupId);
       }
     }

@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
+import GroupPage from './pages/GroupPage';
 
 const theme = createTheme({
   palette: {
@@ -20,6 +21,14 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/group/:groupId',
+      element: (
+        <ProtectedRoute>
+          <GroupPage />
         </ProtectedRoute>
       ),
     },

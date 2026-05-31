@@ -7,31 +7,58 @@ export interface UserDoc {
   createdAt: Timestamp;
 }
 
-// Field names must match firestore.rules:
-//   isGroupMember  → memberUserIds array contains request.auth.uid
-//   isGroupOwner   → userId == request.auth.uid
 export interface Group {
   id: string;
   name: string;
-  userId: string;          // owner uid
-  memberUserIds: string[]; // all members including owner
+  userId: string;
+  memberUserIds: string[];
+  pendingInvites: string[];
   createdAt: Timestamp;
 }
 
-export type SplitType = 'equal' | 'percentage' | 'custom';
+export type SplitType = 'equal' | 'custom' | 'percentage';
+
+export type ExpenseCategory =
+  | 'Restaurant/Bar'
+  | 'Utility'
+  | 'Grocery'
+  | 'Household Supply'
+  | 'Entertainment'
+  | 'Travel'
+  | 'Gas';
 
 export interface Split {
   userId: string;
-  amount: number; // resolved dollar amount this member owes
+  amount: number;
+  percentage?: number;
 }
 
 export interface Transaction {
   id: string;
   description: string;
   amount: number;
+  date: Timestamp;
+  category?: ExpenseCategory;
   paidByUserId: string;
   splitType: SplitType;
   splits: Split[];
+  createdBy: string;
   createdAt: Timestamp;
-  settledAt?: Timestamp;
+}
+
+export interface Settlement {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  date: Timestamp;
+  note?: string;
+  createdBy: string;
+  createdAt: Timestamp;
+}
+
+export interface Debt {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
 }
